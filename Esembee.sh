@@ -253,11 +253,11 @@ function helpmenu () {
    echo
    echo "To specify a target: Either a list of IPs can be supplied with the -f option or a specific target IP can be supplied with -I along with a specific share -S, ie ./hailmary.sh -I <target IP> -S <target share> or ./hailmary -f <scopeips.txt>"
    echo
-   echo "Syntax to generate and place URL file on target IP and share: ./hailmary.sh -u <domain/username> -p <password> -I <192.168.8.8> -S <sharename>"
+   echo "Syntax to generate and place URL file on target IP and share: ./esembee.sh -u <domain/username> -p <password> -I <192.168.8.8> -S <sharename>"
    echo
-   echo "Syntax to run cleanup on a specific share: ./hailmary.sh -u <domain/username> -p <password> -I <192.168.8.8> -S <sharename> -C -F <urlfile>"
+   echo "Syntax to run cleanup on a specific share: ./esembee.sh -u <domain/username> -p <password> -I <192.168.8.8> -S <sharename> -C -F <urlfile>"
    echo
-   echo "Syntax to scan scope of IPs for write access: ./hailmary.sh -u <domain/username> -p <password> -f <scopeIPs.txt> -t"
+   echo "Syntax to scan scope of IPs for write access: ./esembee.sh -u <domain/username> -p <password> -f <scopeIPs.txt> -t"
    echo
    echo "options:"
    echo "-u     This argument is required. Supply the domain/username"
