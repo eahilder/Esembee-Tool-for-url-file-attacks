@@ -251,7 +251,7 @@ function helpmenu () {
    # Display Help
    echo "This script can generate a a malicious URL file containing the IP of a listener, scan a scope of IPs for write access, and place the URL file on writable shares. When the share is accessed by a victim, their NTLMv2 hash can be captured via a listener like Responder." 
    echo
-   echo "To specify a target: Either a list of IPs can be supplied with the -f option or a specific target IP can be supplied with -I along with a specific share -S, ie ./hailmary.sh -I <target IP> -S <target share> or ./hailmary -f <scopeips.txt>"
+   echo "To specify a target: Either a list of IPs can be supplied with the -f option or a specific target IP can be supplied with -I along with a specific share -S, ie ./esembee.sh -I <target IP> -S <target share> or ./esembee.sh -f <scopeips.txt>"
    echo
    echo "Syntax to generate and place URL file on target IP and share: ./esembee.sh -u <domain/username> -p <password> -I <192.168.8.8> -S <sharename>"
    echo
