@@ -262,7 +262,7 @@ function helpmenu () {
    echo "options:"
    echo "-u     This argument is required. Supply the domain/username"
    echo "-p     This argument is required. Supply the password or hash of the domain user"
-   echo "-h     Optional argument to use when the supplied password is an NTLM hash"
+   echo "-H     Optional argument to use when the supplied password is an NTLM hash"
    echo "-I     Optional target specification for a single IP. Must also specify the share with the -S argument"
    echo "-S     Optional target specification to be used in conjunction with the -I argument"
    echo "-f     Optional target specification. Supply a txt file of possible target IPs"
