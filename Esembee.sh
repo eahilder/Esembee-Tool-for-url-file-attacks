@@ -116,12 +116,12 @@ done
 else
 if [[ ! -v targetip ]];
 then
-echo "Target IP not set. Set with -T argument"
+echo "Target not set. Specify a list of IPs with -f or a single IP (-I) and share (-S) exiting... "
 exit
 fi
 if [[ ! -v share ]];
 then
-echo "Target Share not set. Set with -S argument."
+echo "Target Share not set. -I option requires a specific share to be targeted. Set with -S argument."
 exit
 fi
 echo "Testing connection to $targetip"
@@ -166,7 +166,7 @@ done
 else
 if [[ ! -v targetip ]];
 then
-echo "Target IP not set. Set with -T argument"
+echo "Target not set. Specify a list of IPs with -f or a single IP (-I) and share (-S) exiting..."
 exit
 fi
 if [[ ! -v share ]];
@@ -210,7 +210,7 @@ done
 else
 if [[ ! -v targetip ]];
 then
-echo "Target IP not set. Set with -T argument"
+echo "Target not set. Specify a list of IPs with -f or a single IP (-I) and share (-S) exiting..."
 exit
 fi
 if [[ ! -v share ]];
