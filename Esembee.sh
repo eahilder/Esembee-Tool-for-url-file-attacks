@@ -1,5 +1,9 @@
 #!/bin/bash
 
+
+
+COLOR_REST="$(tput sgr0)"
+COLOR_GREEN="$(tput setaf 2)"
 ######
 ###Functions of the script listed below
 ######
@@ -104,12 +108,12 @@ Lines=$(cat $allips)
 for Line in $Lines
 do
    echo "Testing SMB connection to "$Line""
-   readarray -t lines < <(smbclient -L "$Line" -U "$u"%"$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
+   readarray -t lines < <(smbclient -L "$Line" -U "$u" --password="$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
    	for line in "${lines[@]}"; do
-        if smbclient \\\\"$Line"\\"$line" -U $u%$p $h -c "put $urlfile" >/dev/null 2>&1
+        if smbclient \\\\"$Line"\\"$line" -U $u --password="$p" $h -c "put $urlfile" >/dev/null 2>&1
    	then 
-   	echo "$u has write permissions for $line at $Line" 
-   	echo "File $urlfile placed on $Line at share $line" 
+   	printf '%s%s%s\n' $COLOR_GREEN "$u has write access to $line at $Line" $COLOR_REST
+   	printf '%s%s%s\n' $COLOR_GREEN "File $urlfile placed on $Line at share $line" $COLOR_REST
    	fi
    	done
 done
@@ -125,7 +129,7 @@ echo "Target Share not set. -I option requires a specific share to be targeted. 
 exit
 fi
 echo "Testing connection to $targetip"
-smbclient \\\\"$targetip"\\"$share" -U $u%$p $h -c "put $urlfile" 
+smbclient \\\\"$targetip"\\"$share" -U $u --password="$p" $h -c "put $urlfile" >/dev/null 2>&1
 fi
 }
 ###########Function for Scope check###
@@ -154,11 +158,11 @@ Lines=$(cat $allips)
 for Line in $Lines
 do
    echo "Testing SMB connection to "$Line""
-   readarray -t lines < <(smbclient -L "$Line" -U "$u"%"$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
+   readarray -t lines < <(smbclient -L "$Line" -U "$u" --password="$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
    	for line in "${lines[@]}"; do
-        if smbclient \\\\"$Line"\\"$line" -U $u%$p $h -c "rm $urlfile" >/dev/null 2>&1
+        if smbclient \\\\"$Line"\\"$line" -U $u --password="$p" $h -c "rm $urlfile" >/dev/null 2>&1
    	then 
-   	echo "$u has write permissions for $line at $Line" 
+   	printf '%s%s%s\n' $COLOR_GREEN "$u has write access to $line at $Line" $COLOR_REST
    	echo "File $urlfile removed on $Line at share $line" 
    	fi
    	done
@@ -175,7 +179,7 @@ echo "Target Share not set. Set with -S argument."
 exit
 fi
 echo "Testing connection to $targetip"
-smbclient \\\\"$targetip"\\"$share" -U $u%$p $h -c "rm $urlfile" 
+smbclient \\\\"$targetip"\\"$share" -U $u --password="$p" $h -c "rm $urlfile" >/dev/null 2>&1
 fi
 exit
 }
@@ -199,11 +203,11 @@ for Line in $Lines
 do
    touch testfile.txt
    echo "Testing SMB connection to "$Line""
-   readarray -t lines < <(smbclient -L "$Line" -U "$u"%"$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
+   readarray -t lines < <(smbclient -L "$Line" -U "$u" --password="$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
    	for line in "${lines[@]}"; do
-   	if smbclient \\\\"$Line"\\"$line" -U $u%$p $h -c "put testfile.txt ; rm testfile.txt" >/dev/null 2>&1 
+   	if smbclient \\\\"$Line"\\"$line" -U $u --password="$p" $h -c "put testfile.txt ; rm testfile.txt" >/dev/null 2>&1 
    	then 
-   	echo "$u has write access to $line at $Line"
+   	printf '%s%s%s\n' $COLOR_GREEN "$u has write access to $line at $Line" $COLOR_REST
    	fi
    	done
 done
@@ -220,9 +224,9 @@ exit
 fi
 touch testfile.txt
 echo "Testing connection to $targetip"
-if smbclient \\\\"$targetip"\\"$share" -U $u%$p $h -c "put testfile.txt ; rm testfile.txt" >/dev/null 2>&1
+if smbclient \\\\"$targetip"\\"$share" -U $u --password="$p" $h -c "put testfile.txt ; rm testfile.txt" >/dev/null 2>&1
 then
-echo "$u has write access to $share at $targetip."
+printf '%s%s%s\n' $COLOR_GREEN "$u has write access to $line at $Line" $COLOR_REST
 else
 echo "$u cannot write to $share at $targetip." 
 fi
@@ -237,12 +241,12 @@ exit
 function variablecheck () {
 if [[ ! -v u ]];
 then
-echo "Username not set. Use -u to set username. Exiting..."
+echo "Username not set. Use -u to set username. if Null, set -u as 'Null' Exiting..."
 exit
 fi
 if [[ ! -v p ]];
 then
-echo "password not set. Use -p to set password. Exiting..."
+echo "password not set. Use -p to set password. if Null session, set -p as '-N' Exiting..."
 exit
 fi
 }
@@ -259,9 +263,11 @@ function helpmenu () {
    echo
    echo "Syntax to scan scope of IPs for write access: ./esembee.sh -u <domain/username> -p <password> -f <scopeIPs.txt> -t"
    echo
+   echo "Syntax to run a NULL scan ./esembee.sh -u 'null' -p '-N' -f <scopeIPs.txt> -t"
+   echo
    echo "options:"
-   echo "-u     This argument is required. Supply the domain/username"
-   echo "-p     This argument is required. Supply the password or hash of the domain user"
+   echo "-u     This argument is required. Supply the domain/username; set argument as null if null"
+   echo "-p     This argument is required. Supply the password or hash of the domain user. set argument as -N if null"
    echo "-H     Optional argument to use when the supplied password is an NTLM hash"
    echo "-I     Optional target specification for a single IP. Must also specify the share with the -S argument"
    echo "-S     Optional target specification to be used in conjunction with the -I argument"
